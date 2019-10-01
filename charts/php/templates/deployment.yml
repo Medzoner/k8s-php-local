@@ -17,7 +17,7 @@ spec:
             volumes:
                 - name: shared-files
                   persistentVolumeClaim:
-                    claimName: task-pv-claim
+                    claimName: task-pvc
 
                 - name: php-ini
                   configMap:
