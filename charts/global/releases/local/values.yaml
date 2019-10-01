@@ -1,0 +1,6 @@
+docker_registry: xxxxxxxxxxxxxxxxxxxxxx
+docker_username: xxxxxxxxxx
+docker_password: xxxxxxxxxx
+docker_email: xxxxxxxxxxxxxxxx
+
+env: local

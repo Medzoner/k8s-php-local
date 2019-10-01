@@ -1,0 +1,89 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: http-php
+    namespace: {{ $.Values.env }}
+spec:
+    selector:
+        matchLabels:
+            app: http-php
+    replicas: 1
+    template:
+        metadata:
+            labels:
+                app: http-php
+        spec:
+            volumes:
+                - name: shared-files
+                  emptyDir: {}
+
+                - name: php-ini
+                  configMap:
+                      name: phpini-configmap
+                      items:
+                          - key: php-ini
+                            path: php.ini
+
+                - name: php-conf
+                  configMap:
+                      name: php-configmap
+                      items:
+                          - key: docker-conf
+                            path: zz-docker.conf
+
+                - name: nginx-config
+                  configMap:
+                      name: nginx-configmap
+                      items:
+                          - key: nginx-conf
+                            path: nginx.conf
+                          - key: conf
+                            path: nginx.conf
+
+            containers:
+
+                - name: php
+                  imagePullPolicy: Always
+                  image: medzoner/medzoner_php
+
+                  ports:
+                      - containerPort: 9000
+                  volumeMounts:
+                      - name: shared-files
+                        mountPath: /var/www
+
+                      - mountPath: /usr/local/etc/php-fpm.d/zz-docker.conf
+                        name: php-conf
+                        subPath: zz-docker.conf
+
+                      - mountPath: /usr/local/etc/php/php.ini
+                        name: php-ini
+                        subPath: php.ini
+
+                  resources:
+                      requests:
+                          cpu: 10m
+                          memory: 256Mi
+
+                - name: nginx
+                  imagePullPolicy: Always
+                  image: {{ $.Values.docker_registry }}/nginx:latest
+                  ports:
+                      - containerPort: 80
+                  volumeMounts:
+                      - name: shared-files
+                        mountPath: /var/www
+
+                      - mountPath: "/etc/nginx/nginx.conf"
+                        subPath: nginx.conf
+                        name: "nginx-config"
+
+                      - mountPath: "/etc/nginx/conf.d/nginx.conf"
+                        subPath: nginx.conf
+                        name: "nginx-config"
+
+                  resources:
+                      requests:
+                          cpu: 25m
+                          memory: 128Mi

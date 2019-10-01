@@ -1,0 +1,4 @@
+apiVersion: v1
+name: global
+description: global chart
+version: 0.0.1
