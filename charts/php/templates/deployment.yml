@@ -27,19 +27,19 @@ spec:
 
                 - name: php-conf
                   configMap:
-                      name: php-configmap
+                      name: local-configmap
                       items:
                           - key: docker-conf
                             path: zz-docker.conf
 
                 - name: nginx-config
                   configMap:
-                      name: nginx-configmap
+                      name: local-configmap
                       items:
                           - key: nginx-conf
                             path: nginx.conf
-                          - key: conf
-                            path: nginx.conf
+                          - key: vhost-conf
+                            path: vhost.conf
 
             containers:
 
@@ -79,8 +79,8 @@ spec:
                         subPath: nginx.conf
                         name: "nginx-config"
 
-                      - mountPath: "/etc/nginx/conf.d/nginx.conf"
-                        subPath: nginx.conf
+                      - mountPath: "/etc/nginx/conf.d/vhost.conf"
+                        subPath: vhost.conf
                         name: "nginx-config"
 
                   resources:

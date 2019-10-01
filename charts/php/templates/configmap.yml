@@ -1,0 +1,132 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: local-configmap
+  namespace: {{ $.Values.env }}
+data:
+  docker-conf: |
+    [global]
+    daemonize = no
+    [www]
+    listen = 9000
+    pm = static
+    pm.max_children = 40
+    pm.start_servers = 15
+    pm.min_spare_servers = 15
+    pm.max_spare_servers = 20
+    pm.max_requests = 500
+
+  nginx-conf: |-
+
+    include /etc/nginx/modules-enabled/*.conf;
+
+    events {
+            worker_connections 768;
+    }
+
+    http {
+            log_format custom '$remote_addr - $remote_user [$http_x_request_id][$time_local] '
+                '"$request" $status $body_bytes_sent '
+                '"$http_referer" "$http_user_agent" "$http_x_forwarded_for" '
+                '$request_time $upstream_response_time $http_x_forwarded_for';
+
+            sendfile on;
+            tcp_nopush on;
+            tcp_nodelay on;
+            keepalive_timeout 65;
+            types_hash_max_size 2048;
+            server_tokens off;
+
+            proxy_buffer_size 128k;
+            proxy_buffers 4 256k;
+            proxy_busy_buffers_size 256k;
+            client_max_body_size 102M;
+
+            fastcgi_buffers 32 32k;
+            fastcgi_buffer_size 32k;
+
+            server_names_hash_bucket_size 128;
+            server_name_in_redirect off;
+
+            include /etc/nginx/mime.types;
+            default_type application/octet-stream;
+
+            ssl_protocols TLSv1 TLSv1.1 TLSv1.2; # Dropping SSLv3, ref: POODLE
+            ssl_prefer_server_ciphers on;
+
+            access_log /var/log/nginx/access.log;
+            error_log /var/log/nginx/error.log;
+
+            gzip on;
+            gzip_disable "msie6";
+
+            gzip_vary on;
+            gzip_proxied any;
+            gzip_comp_level 6;
+            gzip_buffers 16 8k;
+            gzip_http_version 1.1;
+            gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+
+            include /etc/nginx/conf.d/*.conf;
+            include /etc/nginx/sites-enabled/*;
+    }
+
+  vhost-conf: |-
+    server {
+        listen 80 default_server;
+        listen [::]:80 default_server;
+
+        server_name _;
+
+        root /var/www/html/web;
+
+        charset utf-8;
+
+        index app.php;
+
+
+        location / {
+           # try to serve file directly, fallback to app.php
+           try_files $uri /app.php$is_args$args;
+        }
+
+        location ~ ^/(app|app_dev|app_test|config)\.php(/|$) {
+           root /var/www/html/web;
+           fastcgi_pass php-service:9000;
+           fastcgi_split_path_info ^(.+\.php)(/.*)$;
+           include fastcgi_params;
+           fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+           fastcgi_param DOCUMENT_ROOT $realpath_root;
+           fastcgi_param HTTPS off;
+           fastcgi_index app.php;
+           fastcgi_buffer_size 128k;
+           fastcgi_buffers 4 256k;
+           fastcgi_busy_buffers_size 256k;
+
+           # For activate security mode (scheme = https) in symfony
+           set $xhttps on;
+           if ($http_x_forwarded_proto != 'https') {
+                set $xhttps off;
+           }
+           fastcgi_param HTTPS $xhttps;
+           internal;
+        }
+
+        # Deny .htaccess file access
+        location ~ /\.ht {
+           deny all;
+        }
+
+
+        # serve static files directly
+        location ~* ^.+.(jpg|jpeg|gif|css|png|js|ico)$ {
+            access_log        off;
+            error_log        off;
+            add_header Access-Control-Allow-Origin *;
+            expires 60d;
+        }
+
+        access_log /var/log/nginx/access.log custom;
+        error_log  /var/log/nginx/error.log;
+    }
