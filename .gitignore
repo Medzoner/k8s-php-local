@@ -1,2 +1,4 @@
 /config.yml
 /.idea
+/charts/global/releases/local/values.yaml
+/charts/php/releases/local/values.yaml
