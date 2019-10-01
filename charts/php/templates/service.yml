@@ -14,3 +14,20 @@ spec:
       targetPort: 9000
   selector:
     app: php
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+  namespace: {{ $.Values.env }}
+  labels:
+    app: http-php
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 80
+  selector:
+    app: http-php
