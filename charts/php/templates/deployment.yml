@@ -68,7 +68,7 @@ spec:
 
                 - name: nginx
                   imagePullPolicy: Always
-                  image: {{ $.Values.docker_registry }}/nginx:latest
+                  image: medzoner/medzoner_nginx
                   ports:
                       - containerPort: 80
                   volumeMounts:
