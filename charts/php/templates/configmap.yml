@@ -79,7 +79,7 @@ data:
 
         server_name _;
 
-        root /var/www/html/web;
+        root /var/www;
 
         charset utf-8;
 
@@ -92,7 +92,7 @@ data:
         }
 
         location ~ ^/(app|app_dev|app_test|config)\.php(/|$) {
-           root /var/www/html/web;
+           root /var/www;
            fastcgi_pass php-service:9000;
            fastcgi_split_path_info ^(.+\.php)(/.*)$;
            include fastcgi_params;
