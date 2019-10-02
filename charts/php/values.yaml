@@ -1,2 +1,4 @@
 env: local
 app_local_path: /data
+nodeIp: xxxxxxxxxxxxxxxxxx
+externalHost: name.local

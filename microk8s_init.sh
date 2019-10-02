@@ -4,3 +4,5 @@ sudo usermod -a -G microk8s $(echo $UID)
 
 # restart user session
 microk8s.enable dns
+
+microk8s.enable ingress
